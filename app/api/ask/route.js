@@ -40,7 +40,13 @@ export async function POST(req) {
     }));
 
     const body = {
-      model: "google/gemini-2.0-flash-exp:free",
+      // Free models on OpenRouter rotate in and out with little notice, so
+      // we list a primary plus fallbacks — OpenRouter tries them in order.
+      models: [
+        "google/gemma-4-31b-it:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemma-4-26b-a4b-it:free",
+      ],
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         ...priorTurns,
