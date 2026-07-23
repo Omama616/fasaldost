@@ -1,6 +1,10 @@
 // AI Farm Assistant
 // A simple chat feature for general farming questions, written for
 // small-holder farmers in Punjab, Pakistan.
+//
+// Uses OpenRouter (https://openrouter.ai) as the AI provider, calling a
+// free model. OpenRouter's free tier is available more broadly by region
+// than calling Google's API directly.
 
 const SYSTEM_PROMPT = `You are Fasal Sahara ("Crop Companion"), the farm-assistant chat feature inside the FasalDost app, built for small-holder farmers in Punjab, Pakistan. You help with practical questions about crop care, irrigation timing, soil health, common pest identification, simple record-keeping habits, and general best practices for crops such as wheat, cotton, rice, sugarcane, and vegetables.
 
@@ -21,45 +25,47 @@ export async function POST(req) {
       return Response.json({ error: "Please type a question." }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return Response.json(
-        { error: "Server is missing GEMINI_API_KEY. Set it in your hosting environment variables." },
+        { error: "Server is missing OPENROUTER_API_KEY. Set it in your hosting environment variables." },
         { status: 500 }
       );
     }
 
-    // Map prior chat turns (if any) into Gemini's "contents" format.
+    // Map prior chat turns (if any) into OpenAI-style chat messages.
     const priorTurns = (history || []).slice(-8).map((turn) => ({
-      role: turn.role === "user" ? "user" : "model",
-      parts: [{ text: turn.text }],
+      role: turn.role === "user" ? "user" : "assistant",
+      content: turn.text,
     }));
 
     const body = {
-      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [...priorTurns, { role: "user", parts: [{ text: question }] }],
-      generationConfig: {
-        temperature: 0.6,
-      },
+      model: "google/gemini-2.0-flash-exp:free",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...priorTurns,
+        { role: "user", content: question },
+      ],
+      temperature: 0.6,
     };
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error("Gemini error:", errText);
+      console.error("OpenRouter error:", errText);
       return Response.json({ error: "The AI service failed to respond. Please try again." }, { status: 502 });
     }
 
     const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data?.choices?.[0]?.message?.content;
 
     if (!text) {
       return Response.json({ error: "The AI did not return an answer. Please try rephrasing." }, { status: 502 });
