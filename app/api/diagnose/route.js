@@ -61,7 +61,13 @@ export async function POST(req) {
     const dataUrl = `data:${mimeType || "image/jpeg"};base64,${imageBase64}`;
 
     const body = {
-      model: "google/gemini-2.0-flash-exp:free",
+      // Free models on OpenRouter rotate in and out with little notice, so
+      // we list a primary plus fallbacks — OpenRouter tries them in order.
+      models: [
+        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      ],
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
