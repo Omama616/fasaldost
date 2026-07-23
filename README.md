@@ -130,8 +130,6 @@ the API key never touches the browser.
 
 ## f. Screenshots
 
-> Replace the placeholders below with real screenshots after you deploy. Save them in a
-> `/screenshots` folder in the repo and update the paths.
 
 ![Dashboard](./screenshots/dashboard.png)
 ![Crop Doctor result](./screenshots/crop-doctor.png)
