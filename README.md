@@ -20,8 +20,7 @@ no app-store install and no login required.
 
 ## b. Live app
 
-🔗 **[https://fasaldost.vercel.app](https://fasaldost.vercel.app)** — replace this with your own live Vercel URL after deploying (see Step 5 below).
-
+🔗 **[[https://fasaldost.vercel.app](https://fasaldost.vercel.app/)](https://fasaldost.vercel.app)** 
 ## c. Features
 
 - **Dashboard** — quick overview of your fields, total acreage, total spend, and issues detected.
